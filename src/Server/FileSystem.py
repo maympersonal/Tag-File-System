@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 class FileSystem:
-    def __init__(self,storage_path = "Storage",metadata_path = "Storage\Metadata.json"):
+    def __init__(self,storage_path = "Storage",metadata_path = "Storage/Metadata.json"):
         self.files = []  # Lista de tuplas (etiquetas, nombre_archivo)
         self.storage_path = storage_path
         self.metadata_path = metadata_path
@@ -127,7 +127,7 @@ class FileSystem:
         for element in self.files:
             if query.issubset(element["tags"]):
                 element["tags"].difference_update(tag_list)
-                if  len(element["tag"]) == 0:
+                if  len(element["tags"]) == 0:
                     for name in element["names"]:
                         os.remove(os.path.join(self.storage_path, name))
         self.save_metadata()  

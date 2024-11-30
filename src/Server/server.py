@@ -1,80 +1,82 @@
 from flask import Flask, request, jsonify
+from FileSystem import FileSystem
+import traceback
 
 app = Flask(__name__)
 
-# Base de datos en memoria: Diccionario con {archivo: etiquetas}
-file_storage = {}
+# Crear una instancia de FileSystem
+file_system = FileSystem()
 
-# Endpoint para agregar archivos con etiquetas
 @app.route('/add', methods=['POST'])
-def add_file():
-    data = request.json
-    files = data.get("files", [])
-    tags = data.get("tags", [])
+def add_files():
+    data = request.get_json()
+    file_list = data.get('files', [])
+    tag_list = data.get('tags', [])
 
-    for file in files:
-        if file in file_storage:
-            file_storage[file].update(tags)
-        else:
-            file_storage[file] = set(tags)
+    if not file_list or not tag_list:
+        return jsonify({"error": "Debe proporcionar 'files' y 'tags'"}), 400
 
-    return jsonify({"message": "Files added successfully", "files": list(file_storage.keys())})
+    references = file_system.add(file_list, tag_list)
+    return jsonify({"message": "Archivos añadidos", "references": references}), 200
 
-# Endpoint para eliminar archivos por consulta
-@app.route('/delete', methods=['POST'])
+
+@app.route('/delete', methods=['DELETE'])
 def delete_files():
-    data = request.json
-    query = set(data.get("query", []))
-    deleted_files = []
+    data = request.get_json()
+    tag_query = data.get('query', [])
 
-    for file, tags in list(file_storage.items()):
-        if query.issubset(tags):  # Si el archivo contiene todas las etiquetas de la consulta
-            deleted_files.append(file)
-            del file_storage[file]
+    if not tag_query:
+        return jsonify({"error": "Debe proporcionar 'query'"}), 400
 
-    return jsonify({"message": "Files deleted successfully", "deleted_files": deleted_files})
+    file_system.delete(tag_query)
+    return jsonify({"message": "Archivos eliminados"}), 200
 
-# Endpoint para listar archivos por consulta
+
 @app.route('/list', methods=['GET'])
 def list_files():
-    query = set(request.json.get("query", []))
-    matching_files = []
+    tag_query = request.args.getlist('query')
 
-    for file, tags in file_storage.items():
-        if query.issubset(tags):
-            matching_files.append({"file": file, "tags": list(tags)})
+    if not tag_query:
+        return jsonify({"error": "Debe proporcionar 'query'"}), 400
 
-    return jsonify({"files": matching_files})
+    files = file_system.listFiles(tag_query)
+    return jsonify({"files": files}), 200
 
-# Endpoint para agregar etiquetas a archivos por consulta
+
 @app.route('/add-tags', methods=['POST'])
 def add_tags():
-    data = request.json
-    query = set(data.get("query", []))
-    new_tags = set(data.get("tags", []))
-    updated_files = []
+    try:
+        data = request.get_json()
+        tag_query = data.get('query')
+        tag_list = data.get('tags')
+        if not tag_query or not tag_list:
+            return jsonify({"error": "Debe proporcionar 'query' y 'tags'"}), 400
 
-    for file, tags in file_storage.items():
-        if query.issubset(tags):
-            file_storage[file].update(new_tags)
-            updated_files.append(file)
+        file_system.add_tags(tag_query, tag_list)
+        return jsonify({"message": "Etiquetas añadidas"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-    return jsonify({"message": "Tags added successfully", "updated_files": updated_files})
 
-# Endpoint para eliminar etiquetas de archivos por consulta
+
 @app.route('/delete-tags', methods=['POST'])
 def delete_tags():
-    data = request.json
-    query = set(data.get("query", []))
-    tags_to_remove = set(data.get("tags", []))
-    updated_files = []
+    try:
+        data = request.get_json()
+        query = data.get("query")
+        tags = data.get("tags")
 
-    for file, tags in file_storage.items():
-        if query.issubset(tags):
-            file_storage[file] -= tags_to_remove
-            updated_files.append(file)
+        if not query or not tags:
+            return jsonify({"error": "Debe proporcionar 'query' y 'tags'"}), 400
 
-    return jsonify({"message": "Tags removed successfully", "updated_files": updated_files})
+        file_system.delete_tags(query, tags)
+        return jsonify({"message": "Etiquetas eliminadas"}), 200
+    except Exception as e:
+        print("Error en /delete-tags:")
+        traceback.print_exc()
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)

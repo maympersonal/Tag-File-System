@@ -1,7 +1,7 @@
 import requests
 import argparse
 
-SERVER_URL = "http://server:5000"  # Cambiar a la dirección del servidor
+SERVER_URL = "http://127.0.0.1:5000"  # Cambiar a la dirección del servidor
 
 
 def add_file(file_list, tag_list):
@@ -18,15 +18,23 @@ def delete_files(tag_query):
 
 def list_files(tag_query):
     url = f"{SERVER_URL}/list"
-    data = {"query": tag_query}
-    response = requests.get(url, json=data)
+    params = {"query": tag_query}
+    response = requests.get(url, params=params)
     print(response.json())
 
 def add_tags(tag_query, tag_list):
     url = f"{SERVER_URL}/add-tags"
     data = {"query": tag_query, "tags": tag_list}
     response = requests.post(url, json=data)
-    print(response.json())
+    try:
+        # Intentar decodificar JSON solo si hay contenido
+        if response.status_code == 200:
+            print(response.json())
+        else:
+            print(f"Error: {response.status_code} - {response.text}")
+    except requests.exceptions.JSONDecodeError:
+        print(f"Error en la respuesta del servidor: {response.status_code} - No es un JSON válido")
+
 
 def delete_tags(tag_query, tag_list):
     url = f"{SERVER_URL}/delete-tags"
