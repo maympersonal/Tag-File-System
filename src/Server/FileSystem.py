@@ -2,7 +2,7 @@ import os
 import json
 import uuid
 class FileSystem:
-    def __init__(self,storage_path = "Storage",metadata_path = "Storage/Metadata.json"):
+    def __init__(self,storage_path = "./Storage",metadata_path = "./Storage/Metadata.json"):
         self.files = []  # Lista de tuplas (etiquetas, nombre_archivo)
         self.storage_path = storage_path
         self.metadata_path = metadata_path
@@ -46,6 +46,25 @@ class FileSystem:
         #     self.files.append((tags,file))# 666 ver como guardar los archivos
 
         # print(self.files)
+        for ref in self.files:
+            if tags == ref["tags"]:
+                for file in file_list:
+
+                    # Generar un nombre único para el archivo en el sistema
+                    unique_name = str(uuid.uuid4())
+                    dest_path = os.path.join(self.storage_path, unique_name)
+                    references.append(unique_name)
+                    try:
+                        # Copiar archivo al almacenamiento
+                        with open(dest_path, 'w', encoding='utf-8') as archive:
+                            archive.write(file)
+
+                    except Exception as e:
+                        print(f"Error al procesar el archivo '{file}': {e}")
+                ref["names"].extend(references)
+                self.save_metadata()
+                return references
+
 
 
         for file in file_list:
@@ -58,11 +77,6 @@ class FileSystem:
                 # Copiar archivo al almacenamiento
                 with open(dest_path, 'w', encoding='utf-8') as archive:
                     archive.write(file)
-
-                # # Guardar metadatos
-                # self.files.append({"tags": tags, "name": unique_name, "path": dest_path})
-                # references.append(dest_path)
-                # print(f"Archivo '{file}' almacenado en '{dest_path}' con etiquetas {tags}.")
 
             except Exception as e:
                 print(f"Error al procesar el archivo '{file}': {e}")
@@ -132,5 +146,7 @@ class FileSystem:
                         os.remove(os.path.join(self.storage_path, name))
         self.save_metadata()  
         print(self.files)
+
+
 
 
