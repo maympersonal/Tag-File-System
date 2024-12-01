@@ -20,16 +20,25 @@ def add_files():
     return jsonify({"message": "Archivos añadidos", "references": references}), 200
 
 
-@app.route('/delete', methods=['DELETE'])
+@app.route('/delete', methods=['POST'])
 def delete_files():
-    data = request.get_json()
-    tag_query = data.get('query', [])
+    try:
+        data = request.get_json()
+        query = data.get("query")
+        if not query:
+            raise ValueError("No query provided")
+        
+        # Llama a la lógica del sistema de archivos
+        deleted_files = file_system.delete(query)
+        
+        # Respuesta exitosa
+        return jsonify({"message": "Archivos eliminados", "deleted": deleted_files}), 200
+    
+    except Exception as e:
+        # Log del error
+        print(f"Error en /delete: {e}")
+        return jsonify({"error": str(e)}), 500
 
-    if not tag_query:
-        return jsonify({"error": "Debe proporcionar 'query'"}), 400
-
-    file_system.delete(tag_query)
-    return jsonify({"message": "Archivos eliminados"}), 200
 
 
 @app.route('/list', methods=['GET'])
