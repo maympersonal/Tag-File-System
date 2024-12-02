@@ -1,17 +1,17 @@
-# Usa una imagen base de Python
-FROM python:3.10-slim
+# Usa python como base
+FROM python:3.10.12
 
-# Establece el directorio de trabajo dentro del contenedor
-WORKDIR /app
+# Establece el directorio de trabajo
+WORKDIR  /app
 
-# Copia los archivos del servidor al contenedor
-COPY server.py /app/
+# Copia toda la carpeta a app
+COPY . ./app
 
-# Instala Flask
+# Instala Python 3.10.12 y otras dependencias
 RUN pip install flask
 
 # Expone el puerto 5000 para que otros contenedores accedan al servidor
 EXPOSE 5000
 
-# Comando para ejecutar el servidor
-CMD ["python", "server.py"]
+# Define el comando de entrada para el contenedor
+ENTRYPOINT ["python3", "server.py"]

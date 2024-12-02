@@ -127,7 +127,7 @@ class FileSystem:
         query = set(tag_query)
 
         for element in self.files:
-            if query.issubset(element["tags"]):
+            if query.issubset(element["tags"]) and not(query.issubset(element["tags"])):
                 element["tags"].update(tag_list)
         self.save_metadata()
         print(self.files)
@@ -146,6 +146,7 @@ class FileSystem:
                         os.remove(os.path.join(self.storage_path, name))
         self.save_metadata()  
         print(self.files)
+
 
 
 

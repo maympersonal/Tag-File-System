@@ -1,14 +1,14 @@
-# Usa una imagen base de Python
-FROM python:3.10-slim
+# Usa python como base
+FROM python:3.10.12
 
-# Establece el directorio de trabajo dentro del contenedor
-WORKDIR /app
+# Establece el directorio de trabajo
+WORKDIR  /app
 
-# Copia los archivos del cliente al contenedor
-COPY client.py /app/
+# Copia toda la carpeta a app
+COPY  client.py /app
 
-# Instala las dependencias necesarias
+# Instala Python 3.10.12 y otras dependencias
 RUN pip install requests
 
-# Comando para ejecutar el cliente (puedes personalizarlo)
+# Define el comando de entrada para el contenedor
 ENTRYPOINT ["python", "client.py"]
