@@ -5,7 +5,7 @@ FROM python:3.10.12
 WORKDIR  /app
 
 # Copia toda la carpeta a app
-COPY . ./app
+COPY . .
 
 # Instala Python 3.10.12 y otras dependencias
 RUN pip install flask
