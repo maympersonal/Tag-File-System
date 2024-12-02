@@ -5,7 +5,7 @@ FROM python:3.10.12
 WORKDIR  /app
 
 # Copia toda la carpeta a app
-COPY  client.py /app
+COPY  client.py ./client.py
 
 # Instala Python 3.10.12 y otras dependencias
 RUN pip install requests
