@@ -4,6 +4,8 @@ import traceback
 
 app = Flask(__name__)
 
+app.run(host='10.0.11.0', port=5000, debug=True)
+
 # Crear una instancia de FileSystem
 file_system = FileSystem()
 
