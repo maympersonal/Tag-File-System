@@ -14,4 +14,4 @@ RUN pip install flask
 EXPOSE 5000
 
 # Define el comando de entrada para el contenedor
-ENTRYPOINT ["python3", "server.py"]
+ENTRYPOINT ["bash", "server.sh"]
