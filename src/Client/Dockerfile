@@ -1,5 +1,8 @@
 # Usa python como base
-FROM python:3.10.12
+FROM python:3.11-alpine
+
+# Instala bash
+RUN apk add --no-cache bash
 
 # Establece el directorio de trabajo
 WORKDIR  /app

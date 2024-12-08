@@ -125,9 +125,9 @@ class FileSystem:
     def add_tags(self,tag_query,tag_list):
 
         query = set(tag_query)
-
+        newtags = set(tag_list)
         for element in self.files:
-            if query.issubset(element["tags"]) and not(query.issubset(element["tags"])):
+            if query.issubset(element["tags"]) and not(newtags.issubset(element["tags"])):
                 element["tags"].update(tag_list)
         self.save_metadata()
         print(self.files)
@@ -148,6 +148,5 @@ class FileSystem:
         print(self.files)
 
 
-
-
+   
 
