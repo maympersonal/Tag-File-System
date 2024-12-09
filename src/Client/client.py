@@ -1,7 +1,7 @@
 import requests
 import argparse
 
-SERVER_URL = "http://10.0.11.254:5000"  # Cambiar a la dirección del servidor
+SERVER_URL = "http://10.0.11.2:5000"  # Cambiar a la dirección del servidor
 
 
 def add_file(file_list, tag_list):
