@@ -1,20 +1,20 @@
-# Usa python como base
-FROM python:3.11-alpine
+FROM debian:bullseye-slim
 
-# Instala bash
-RUN apk add --no-cache bash
+# Instalar Python y dependencias
+RUN apt-get update && apt-get install -y python3 python3-pip && apt-get clean
 
-# Establece el directorio de trabajo
-WORKDIR  /app
+# Crear directorio de trabajo
+WORKDIR /app
 
-# Copia toda la carpeta a app
-COPY . .
+# Los archivos se sincronizan mediante volúmenes (no usamos COPY aquí)
 
-# Instala Python 3.10.12 y otras dependencias
-RUN pip install flask
+# Copiar archivos del servidor al contenedor
+COPY . /app
 
-# Expone el puerto 5000 para que otros contenedores accedan al servidor
-EXPOSE 5000
+# Configurar un volumen para persistir datos generados
+VOLUME /data
 
-# Define el comando de entrada para el contenedor
-ENTRYPOINT ["bash", "server.sh"]
+
+
+# Comando predeterminado para ejecutar un nodo del servidor
+#CMD ["python3", "main.py"]
