@@ -1,112 +1,210 @@
+version: '3.8'
+
 networks:
-  servers_net:
+  clients:
     driver: bridge
+    name: clients
     ipam:
       config:
-        - subnet: 10.0.1.0/24
-  clients_net:
+        - subnet: 10.0.10.0/24
+  servers:
     driver: bridge
+    name: servers
     ipam:
       config:
-        - subnet: 10.0.2.0/24
+        - subnet: 10.0.11.0/24
 
 services:
-  # 🔵 Router que conecta las dos redes
   router:
-    image: alpine
+    build:
+      context: "./Router"
+      dockerfile: "./Dockerfile"
     container_name: router
-    command: ["sh", "-c", "sysctl -w net.ipv4.ip_forward=1 && tail -f /dev/null"]
+    networks:
+      clients:
+        ipv4_address: 10.0.10.254
+      servers:
+        ipv4_address: 10.0.11.254
     cap_add:
       - NET_ADMIN
-    networks:
-      servers_net:
-        ipv4_address: 10.0.1.254
-      clients_net:
-        ipv4_address: 10.0.2.254
+    restart: always 
 
-  # 🟢 Servidores Chord
   server1:
-    build: ./server
+    build: "./Server"
     image: server
     container_name: server1
     networks:
-      servers_net:
-        ipv4_address: 10.0.1.2
+      servers:
+        ipv4_address: 10.0.11.2
     volumes:
-      - ./server:/app
-      - ./data/server1:/data
+      - "./Server:/app"
+      - "./data/server1:/data"
+    cap_add:
+      - NET_ADMIN
     command: python3 main.py  
 
   server2:
-    build: ./server
+    build: "./Server"
     image: server
     container_name: server2
     networks:
-      servers_net:
-        ipv4_address: 10.0.1.3
+      servers:
+        ipv4_address: 10.0.11.3
     volumes:
-      - ./server:/app
-      - ./data/server2:/data
+      - "./Server:/app"
+      - "./data/server2:/data"
+    cap_add:
+      - NET_ADMIN
     command: python3 main.py  
 
   server3:
-    build: ./server
+    build: "./Server"
     image: server
     container_name: server3
     networks:
-      servers_net:
-        ipv4_address: 10.0.1.4
+      servers:
+        ipv4_address: 10.0.11.4
     volumes:
-      - ./server:/app
-      - ./data/server3:/data
+      - "./Server:/app"
+      - "./data/server3:/data"
+    cap_add:
+      - NET_ADMIN
     command: python3 main.py  
 
   server4:
-    build: ./server
+    build: "./Server"
     image: server
     container_name: server4
     networks:
-      servers_net:
-        ipv4_address: 10.0.1.5
+      servers:
+        ipv4_address: 10.0.11.5
     volumes:
-      - ./server:/app
-      - ./data/server4:/data
+      - "./Server:/app"
+      - "./data/server4:/data"
+    cap_add:
+      - NET_ADMIN
     command: python3 main.py  
 
   server5:
-    build: ./server
+    build: "./Server"
     image: server
     container_name: server5
     networks:
-      servers_net:
-        ipv4_address: 10.0.1.6
+      servers:
+        ipv4_address: 10.0.11.6
     volumes:
-      - ./server:/app
-      - ./data/server5:/data
+      - "./Server:/app"
+      - "./data/server5:/data"
+    cap_add:
+      - NET_ADMIN
     command: python3 main.py  
 
-  # 🔴 Clientes
+  # 🔵 Cliente en servers
   client1:
-    build: ./client
+    build: "./Client"
     image: client
     container_name: client1
     networks:
-      clients_net:
-        ipv4_address: 10.0.2.20
+      servers:
+        ipv4_address: 10.0.11.25
     volumes:
-      - ./client:/app
-    command: python3 client.py 10.0.1.2
+      - "./Client:/app"
+    command: python3 client.py
     stdin_open: true   
-    tty: true          
+    tty: true 
+    cap_add:
+      - NET_ADMIN       
 
+  # 🔵 Cliente en clients (con conexión a servers vía router)
   client2:
-    build: ./client
+    build: "./Client"
     image: client
     container_name: client2
     networks:
-      clients_net:
-        ipv4_address: 10.0.2.22
+      clients:
+        ipv4_address: 10.0.10.22
     volumes:
-      - ./client:/app
+      - "./Client:/app"
+    command: python3 client.py 10.0.11.2
     stdin_open: true   
-    tty: true  
+    tty: true
+    cap_add:
+      - NET_ADMIN
+
+
+
+
+
+
+
+
+# networks:
+#   clients:
+#     ipam:
+#       config:
+#         - subnet: 10.0.10.0/24
+#   servers:
+#     ipam:
+#       config:
+#         - subnet: 10.0.11.0/24
+
+# services:
+#   server1:
+#     build:
+#       context: ./Server
+#       dockerfile: Dockerfile
+#     container_name: server1
+#     networks:
+#       servers:
+#         ipv4_address: 10.0.11.10
+#     volumes:
+#       - ./Server:/app
+#     restart: always
+
+#   server2:
+#     build:
+#       context: ./Server
+#       dockerfile: Dockerfile
+#     container_name: server2
+#     networks:
+#       servers:
+#         ipv4_address: 10.0.11.11
+#     volumes:
+#       - ./Server:/app
+#     restart: always
+
+#   server3:
+#     build:
+#       context: ./Server
+#       dockerfile: Dockerfile
+#     container_name: server3
+#     networks:
+#       servers:
+#         ipv4_address: 10.0.11.12
+#     volumes:
+#       - ./Server:/app
+#     restart: always
+
+#   client:
+#     build:
+#       context: ./Client
+#       dockerfile: Dockerfile
+#     container_name: client
+#     networks:
+#       clients:
+#         ipv4_address: 10.0.10.10
+#     volumes:
+#       - ./Client:/app
+#     restart: always
+
+#   router:
+#     build:
+#       context: ./router
+#       dockerfile: router.Dockerfile
+#     container_name: router
+#     networks:
+#       clients:
+#         ipv4_address: 10.0.10.254
+#       servers:
+#         ipv4_address: 10.0.11.254
+#     restart: always
