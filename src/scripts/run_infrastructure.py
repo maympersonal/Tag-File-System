@@ -1,9 +1,16 @@
 import subprocess
 import time
 
+<<<<<<< Updated upstream
 
 #services = ["server1", "client1"]
 services = ["server1","server2", "server3","client1"]
+=======
+#services = ["router","server1", "client2"]
+#services = ["server1", "server2", "server3","server4", "server5"]
+#services = ["router","server1", "server2", "server3","server4", "server5","client2"]
+services = ["router","server1", "server2", "server3","client2"]
+>>>>>>> Stashed changes
 #services = ["server1", "server2", "server3", "server4", "server5", "server6", "server7", "server8", "server9", "server10", "client1"]
 
 

@@ -11,24 +11,36 @@ from chordnodeobject import ChordNodeObject
 from chordnode import ChordNode
 from storage import Storage
 from utils import *
+import ssl
 
 
 class FileSystemNode(ChordNode):
-    def __init__(self, ip: str):
+    def __init__(self, context : ssl.SSLContext, ip: str):
         """
         Inicializa un nodo del sistema de archivos en la red Chord.
 
         Parámetros:
         ip (str): Dirección IP del nodo.
         """
-        super().__init__(ip, update_replication=self.update_replication)
+        super().__init__(context, ip, update_replication=self.update_replication)
 
         self.data_port = DEFAULT_DATA_PORT
         self.Storage = Storage(ip)
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
         Leader(ip, self.tag_query)
 
         # Iniciar servidores en hilos separados
         threading.Thread(target=self.start_data_server, daemon=True).start()
+=======
+
+        # Iniciar servidores en hilos separados
+        threading.Thread(target=self.start_data_server, daemon=True).start()
+
+        self.green_ligth = True
+        self.recovering = False
+
+
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
         threading.Thread(target=self.start_query_server, daemon=True).start()
 
     def _request_with_permission(self, tags, files_names, query_tags, callback):
@@ -89,6 +101,12 @@ class FileSystemNode(ChordNode):
             print(f"*************** ESTO ES EL FIN **********")
         return True
 
+    def is_recovering(self):
+        """
+        Indica si el sistema está en proceso de recuperación de datos.
+        """
+        return self.recovering
+
     def _query_add(self, files_names: list[str], files_bins: list[bytes], tags: list[str]):
         """
         Agrega archivos al sistema de almacenamiento distribuido.
@@ -111,7 +129,6 @@ class FileSystemNode(ChordNode):
         def callback_func():
             # Copiar cada archivo en el sistema
             for i in range(len(files_names)):
-                print("***************************************")
                 file_name = files_names[i]
                 file_bin = files_bins[i]
                 success, fail_msg = self.copy(file_name, file_bin, tags)
@@ -120,9 +137,14 @@ class FileSystemNode(ChordNode):
                     response['failed_msg'].append(fail_msg)
                 else:
                     response['succeded'].append(file_name)
-            print("**************FINAL CALBACK*************************")
 
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
         success = self._request_with_permission(tags, files_names, [], callback=callback_func)
+=======
+
+        print(f"{files_bins}")
+        success = self._request(tags, files_names, [], callback=callback_func)
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
         if not success:
             response['msg'] = "Fallo de envío de respuesta"
         return response
@@ -344,13 +366,29 @@ class FileSystemNode(ChordNode):
         Inicia el servidor que maneja las consultas de archivos y etiquetas.
         """
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+
+            
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind((self.ip, DEFAULT_QUERY_PORT))
             s.listen(10)
 
             while True:
                 client_socket, client_address = s.accept()
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
                 threading.Thread(target=self.handle_request, args=(client_socket, client_address), daemon=True).start()
+=======
+                data = client_socket.recv(1024).decode('utf-8')
+                if data == "CONECT":
+                    msg = generate_password(12)
+                    encrypted_msg = encrypt_message(msg, CLIENT_SECRET_KEY)
+                    response = f"NODE {self.id} {encrypted_msg}".encode()
+                    client_socket.sendall(response)
+                    rmsg = client_socket.recv(1024).decode('utf-8')
+                    if msg == rmsg:
+                        client_socket.sendall(f"{OK}".encode('utf-8'))
+
+                        threading.Thread(target=self.handle_request, args=(client_socket, client_address), daemon=True).start()
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
 
 
     def handle_request(self, client_socket: socket.socket, client_addr):
@@ -363,13 +401,20 @@ class FileSystemNode(ChordNode):
         """
         with client_socket:
             # Recibir operación
+            
+            client_socket = self.context.wrap_socket(client_socket, server_side=True)
+
             operation = client_socket.recv(1024).decode('utf-8')
 
             print(f"{client_addr[0]} solicita {operation}")
 
             # Enviar ACK si la operación es válida
             if operation in {'add', 'delete', 'list', 'add-tags', 'delete-tags', 'download', 'inspect-tag', 'inspect-file'}:
-                client_socket.sendall(f"{OK}".encode('utf-8'))
+                if self.is_recovering():
+                    client_socket.sendall(f"Estoy en recuperacion, imposible atender {operation}".encode('utf-8'))
+                    return
+                else:
+                    client_socket.sendall(f"{OK}".encode('utf-8'))
             else:
                 client_socket.sendall(f"Operación no reconocida: {operation}".encode('utf-8'))
                 return
@@ -382,9 +427,13 @@ class FileSystemNode(ChordNode):
                 
                 while True:
                     file_name = client_socket.recv(1024).decode('utf-8')
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
                     print(f"****************** {file_name} *********************************")
                     if file_name == "100": #f"{END}":
                         print("****************** SALIENDO CICLO *********************************")
+=======
+                    if file_name == f"{END}":
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
                         break
 
                     # Enviar ACK de recepción del nombre de archivo
@@ -402,15 +451,12 @@ class FileSystemNode(ChordNode):
 
                     # Enviar ACK de recepción del contenido del archivo
                     client_socket.sendall(f"{OK}".encode('utf-8'))
-
                     files_names.append(file_name)
                     files_bins.append(file_bin)
 
                 client_socket.sendall(f"{OK}".encode('utf-8'))
                 tags = client_socket.recv(1024).decode('utf-8').split(';')
-                print(f"****************** ANTES *********************************")
                 response = self._query_add(files_names, files_bins, tags)
-                print(f"****************** {response} *********************************")
             elif operation == 'delete':
                 query_tags = client_socket.recv(1024).decode('utf-8').split(';')
                 response = self._query_delete(query_tags)
@@ -466,7 +512,6 @@ class FileSystemNode(ChordNode):
 
             
             response_str = json.dumps(response)
-            print(f"****************** {response_str} *********************************")
             client_socket.sendall(str(response_str).encode('utf-8'))
 
     def _pack_permission_request(self, tags: list[str], files_names: list[str], query_tags: list[str]) -> bytes:
@@ -696,6 +741,7 @@ class FileSystemNode(ChordNode):
         case_2 (bool): Caso especial de replicación.
         assume_predpred (str): Dirección IP del nodo predpred para asumir datos.
         """
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
         if delegate_data:
             self.Storage.delegate_data(self.pred.ip, self.succ.ip, self.pred.ip, case_2)
 
@@ -704,12 +750,34 @@ class FileSystemNode(ChordNode):
                 self.Storage.pull_replication(self.pred.ip, True)
             else:
                 self.Storage.pull_replication(self.succ.ip, False)
+=======
+        self.recovering = True
+
+        print(f"***** Comenzando la replicación.....")
+
+        if delegate_data:
+            if len(self.Storage.tags) > 0:
+                print(f"****** Delegando datos.....")
+                self.Storage.delegate_data(self.pred.ip, self.succ.ip, self.pred.ip, case_2)
+
+        if pull_data:
+            if len(self.Storage.tags) > 0:
+                print(f"****** Haciendo replicación.....")
+                if is_pred:
+                    self.Storage.pull_replication(self.pred.ip, True)
+                else:
+                    self.Storage.pull_replication(self.succ.ip, False)
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
 
         if assume_data:
+            print(f"****** Asumiendo datos.....")
             succ_ip = self.succ.ip
             pred_ip = self.pred.ip if self.pred else None
             # print(f"Se llama a asumir con succ: {succ_ip} y pred: {pred_ip}")
             self.Storage.assume_data(succ_ip, pred_ip, assume_predpred)
+
+        print(f"****** Terminando la replicación.....")
+        self.recovering = False
 
 
     def request_data_handler(self, conn: socket.socket, addr, data: list):
@@ -723,6 +791,7 @@ class FileSystemNode(ChordNode):
         """
         response = None
         option = int(data[0])
+
 
         # Selección de la operación a ejecutar según la opción recibida
         if option == INSERT_TAG:
@@ -760,6 +829,7 @@ class FileSystemNode(ChordNode):
             response = "1" if owns_file else "0"
 
         elif option == INSERT_BIN:
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
             conn.sendall(f"{OK}".encode('utf-8'))
             file_name = conn.recv(1024).decode('utf-8')
             conn.sendall(f"{OK}".encode('utf-8'))
@@ -773,8 +843,11 @@ class FileSystemNode(ChordNode):
                     break
                 bin_data += fragment
 
+=======
+            file_name, bin_data = recv_bin(conn)
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
             response = self.handle_insert_bin(file_name, bin_data)
-            conn.sendall(response.encode('utf-8'))
+            #conn.sendall(response.encode('utf-8'))
 
         elif option == DELETE_BIN:
             response = self.handle_delete_bin(data[1])
@@ -782,7 +855,11 @@ class FileSystemNode(ChordNode):
         elif option == RETRIEVE_BIN:
             file_name = data[1]
             file_bin = self.Storage.retrieve_bin(file_name)
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
 
+=======
+            #file_bin = b''
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
             conn.sendall(file_bin)
             conn.sendall(f"{END_FILE}".encode('utf-8'))
 
@@ -1053,7 +1130,6 @@ class FileSystemNode(ChordNode):
         """
         file_name_hash = getShaRepr(file_name)
         owner = self.lookup(file_name_hash)
-
         # Si este nodo es el propietario del archivo
         if owner.id == self.id:
             self.Storage.store_bin(file_name, bin, self.succ.ip, self.pred.ip if self.pred else None)
@@ -1085,8 +1161,51 @@ class FileSystemNode(ChordNode):
         else:
             response = owner.delete_bin(file_name)
             return response
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
+=======
+
+    def _request(self, tags, files_names, query_tags, callback):
+        """
+        Maneja la solicitud de forma distribuida sin permiso de líder.
+        Si los recursos están localmente, ejecuta el callback.
+        Si no, redirige la consulta al nodo responsable.
+        """
+
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
 
     ###########################################################################
 
+<<<<<<< Updated upstream:src/server/chordfilesystem.py
+=======
+        node_ip = responsible_node.ip
+        node_port = DEFAULT_DB_PORT
+        #node_port = DEFAULT_DATA_PORT
+        if responsible_node.id == self.id:
+            callback()  # Ejecutar el callback localmente
+        else: 
+            try:   
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.connect((node_ip, node_port))
+
+                    # Enviar los datos empaquetados
+                    packed_request = self._pack_request(tags, files_names, query_tags)
+                    s.sendall(packed_request)
+
+                    # Esperar confirmación del líder
+                    """permission = s.recv(1024).decode('utf-8')
+                    print(f" ********** permiso: {permission}")
+                    if permission != "2": #f"{OK}":
+                        raise Exception(f"No se ha enviado permiso, el líder envió: {permission}")
+                    print(f"***************{permission}**********")"""
+                    # Llamar a la función de callback
+                    callback()
+                    # Finalizar la operación
+                    s.sendall(f"{END}".encode('utf-8'))
+            except Exception as e:
+                return False
+                
+        return True
+
+>>>>>>> Stashed changes:src/Server/chordfilesystem.py
 
 

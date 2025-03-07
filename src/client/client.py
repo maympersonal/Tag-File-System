@@ -5,6 +5,11 @@ import time
 import socket
 import threading
 import ipaddress
+<<<<<<< Updated upstream:src/client/client.py
+=======
+import base64
+import ssl
+>>>>>>> Stashed changes:src/Client/client.py
 
 
 # Ruta para recursos del cliente
@@ -78,7 +83,7 @@ def get_server_ip():
 
 
 class Client:
-    def __init__(self, self_disc_obj, target_ip=None, target_port=8003):
+    def __init__(self, context : ssl.SSLContext, self_disc_obj, target_ip=None, target_port=8003):
         """Inicializa el cliente con los parámetros de conexión y auto-descubrimiento"""
         self.ip = socket.gethostbyname(socket.gethostname())
         self.self_disc_object = self_disc_obj
@@ -90,6 +95,11 @@ class Client:
 
         self.retry = False
         self.retry_cmd = ""
+<<<<<<< Updated upstream:src/client/client.py
+=======
+        self.context = context
+    
+>>>>>>> Stashed changes:src/Client/client.py
         self.start()
 
     def start(self):
@@ -154,14 +164,33 @@ exit
 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+
+        
+
                         s.connect((self.target_ip, self.target_port))
 
+<<<<<<< Updated upstream:src/client/client.py
+=======
+                        data = s.recv(1024).decode('utf-8').split()
+
+                        msg = decrypt_message(data[2],  SECRET_KEY)
+                        s.sendall(msg.encode('utf-8'))
+                        
+                        # Esperar confirmacion
+                        ack = s.recv(1024).decode('utf-8')
+                        if ack != f"{OK}":
+                            raise Exception("ACK negativo")
+                        
+                        s = self.context.wrap_socket(s, server_hostname="MAYM")
+>>>>>>> Stashed changes:src/Client/client.py
                         # Enviar operacion
                         s.sendall('add'.encode('utf-8'))
 
                         # Esperar confirmacion
                         ack = s.recv(1024).decode('utf-8')
+                    
                         if ack != f"{OK}":
+                            print(ack)
                             raise Exception("ACK negativo")
 
                         # Enviar cada archivo
@@ -218,14 +247,32 @@ exit
 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        
                         s.connect((self.target_ip, self.target_port))
+<<<<<<< Updated upstream:src/client/client.py
 
+=======
+                        s.sendall('CONECT'.encode('utf-8'))
+
+                        data = s.recv(1024).decode('utf-8').split()
+
+                        msg = decrypt_message(data[2],  SECRET_KEY)
+                        s.sendall(msg.encode('utf-8'))
+                        
+                        # Esperar confirmacion
+                        ack = s.recv(1024).decode('utf-8')
+                        if ack != f"{OK}":
+                            raise Exception("ACK negativo")
+                        
+                        s = self.context.wrap_socket(s, server_hostname="MAYM")
+>>>>>>> Stashed changes:src/Client/client.py
                         # Enviar operacion
                         s.sendall('delete'.encode('utf-8'))
 
                         # Esperar confirmacion
                         ack = s.recv(1024).decode('utf-8')
-                        if ack != f"{OK}": 
+                        if ack != f"{OK}":
+                            print(ack) 
                             raise Exception("ACK negativo")
 
                         # Enviar etiquetas a eliminar
@@ -252,14 +299,33 @@ exit
 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.target_ip, self.target_port))
+                        
 
+                        s.connect((self.target_ip, self.target_port))
+<<<<<<< Updated upstream:src/client/client.py
+
+=======
+                        s.sendall('CONECT'.encode('utf-8'))
+
+                        data = s.recv(1024).decode('utf-8').split()
+
+                        msg = decrypt_message(data[2],  SECRET_KEY)
+                        s.sendall(msg.encode('utf-8'))
+                        
+                        # Esperar confirmacion
+                        ack = s.recv(1024).decode('utf-8')
+                        if ack != f"{OK}":
+                            raise Exception("ACK negativo")
+                        
+                        s = self.context.wrap_socket(s, server_hostname="MAYM")
+>>>>>>> Stashed changes:src/Client/client.py
                         # Enviar operacion
                         s.sendall('list'.encode('utf-8'))
 
                         # Esperar confirmacion
                         ack = s.recv(1024).decode('utf-8')
                         if ack != f"{OK}": 
+                            print(ack)
                             raise Exception("ACK negativo")
 
                         # Enviar etiquetas para listar archivos
@@ -287,14 +353,33 @@ exit
 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.target_ip, self.target_port))
 
+
+                        s.connect((self.target_ip, self.target_port))
+<<<<<<< Updated upstream:src/client/client.py
+
+=======
+                        s.sendall('CONECT'.encode('utf-8'))
+
+                        data = s.recv(1024).decode('utf-8').split()
+
+                        msg = decrypt_message(data[2],  SECRET_KEY)
+                        s.sendall(msg.encode('utf-8'))
+                        
+                        # Esperar confirmacion
+                        ack = s.recv(1024).decode('utf-8')
+                        if ack != f"{OK}":
+                            raise Exception("ACK negativo")
+                        
+                        s = self.context.wrap_socket(s, server_hostname="MAYM")
+>>>>>>> Stashed changes:src/Client/client.py
                         # Enviar operacion
                         s.sendall('add-tags'.encode('utf-8'))
 
                         # Esperar confirmacion
                         ack = s.recv(1024).decode('utf-8')
                         if ack != f"{OK}": 
+                            print(ack)
                             raise Exception("ACK negativo")
 
                         # Enviar etiquetas de consulta
@@ -332,14 +417,33 @@ exit
 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.target_ip, self.target_port))
+                    
 
+                        s.connect((self.target_ip, self.target_port))
+<<<<<<< Updated upstream:src/client/client.py
+
+=======
+                        s.sendall('CONECT'.encode('utf-8'))
+
+                        data = s.recv(1024).decode('utf-8').split()
+
+                        msg = decrypt_message(data[2],  SECRET_KEY)
+                        s.sendall(msg.encode('utf-8'))
+                        
+                        # Esperar confirmacion
+                        ack = s.recv(1024).decode('utf-8')
+                        if ack != f"{OK}":
+                            raise Exception("ACK negativo")
+                        
+                        s = self.context.wrap_socket(s, server_hostname="MAYM")
+>>>>>>> Stashed changes:src/Client/client.py
                         # Enviar operacion
                         s.sendall('delete-tags'.encode('utf-8'))
 
                         # Esperar confirmacion
                         ack = s.recv(1024).decode('utf-8')
                         if ack != f"{OK}": 
+                            print(ack)
                             raise Exception("ACK negativo")
 
                         # Enviar etiquetas de consulta
@@ -374,15 +478,18 @@ exit
 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        
+
                         s.connect((self.target_ip, self.target_port))
                         print("Descargando...")
-
+                        s = self.context.wrap_socket(s, server_hostname="MAYM")
                         # Enviar operacion
                         s.sendall('download'.encode('utf-8'))
 
                         # Esperar confirmacion
                         ack = s.recv(1024).decode('utf-8')
                         if ack != f"{OK}": 
+                            print(ack)
                             raise Exception("ACK negativo")
 
                         # Enviar etiquetas de consulta
@@ -436,14 +543,33 @@ exit
 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.target_ip, self.target_port))
+                        
 
+                        s.connect((self.target_ip, self.target_port))
+<<<<<<< Updated upstream:src/client/client.py
+
+=======
+                        s.sendall('CONECT'.encode('utf-8'))
+
+                        data = s.recv(1024).decode('utf-8').split()
+
+                        msg = decrypt_message(data[2],  SECRET_KEY)
+                        s.sendall(msg.encode('utf-8'))
+                        
+                        # Esperar confirmacion
+                        ack = s.recv(1024).decode('utf-8')
+                        if ack != f"{OK}":
+                            raise Exception("ACK negativo")
+                        
+                        s = self.context.wrap_socket(s, server_hostname="MAYM")
+>>>>>>> Stashed changes:src/Client/client.py
                         # Enviar operacion
                         s.sendall('inspect-tag'.encode('utf-8'))
 
                         # Esperar confirmacion
                         ack = s.recv(1024).decode('utf-8')
                         if ack != f"{OK}": 
+                            print(ack)
                             raise Exception("ACK negativo")
 
                         # Enviar etiqueta
@@ -476,14 +602,33 @@ exit
                 
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                        s.connect((self.target_ip, self.target_port))
+                    
 
+                        s.connect((self.target_ip, self.target_port))
+<<<<<<< Updated upstream:src/client/client.py
+
+=======
+                        s.sendall('CONECT'.encode('utf-8'))
+
+                        data = s.recv(1024).decode('utf-8').split()
+
+                        msg = decrypt_message(data[2],  SECRET_KEY)
+                        s.sendall(msg.encode('utf-8'))
+                        
+                        # Esperar confirmacion
+                        ack = s.recv(1024).decode('utf-8')
+                        if ack != f"{OK}":
+                            raise Exception("ACK negativo")
+                        
+                        s = self.context.wrap_socket(s, server_hostname="MAYM")
+>>>>>>> Stashed changes:src/Client/client.py
                         # Enviar operacion
                         s.sendall("inspect-file".encode("utf-8"))
 
                         # Esperar confirmacion
                         ack = s.recv(1024).decode("utf-8")
                         if ack != f"{OK}": 
+                            print(ack)
                             raise Exception("ACK negativo")
 
                         # Enviar nombre del archivo
@@ -645,11 +790,19 @@ if __name__ == "__main__":
     Punto de entrada del cliente.
     Descubre automáticamente un nodo en la red o se conecta a una IP específica proporcionada como argumento.
     """
+<<<<<<< Updated upstream:src/client/client.py
+=======
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+    #context.set_ciphers("NULL")  # Sin cifrado
+    context.load_verify_locations("cert.pem")
+    
+>>>>>>> Stashed changes:src/Client/client.py
 
     # Obtener la IP del cliente
     ip = socket.gethostbyname(socket.gethostname())
     print(f"Dirección IP del cliente: {ip}")
 
+<<<<<<< Updated upstream:src/client/client.py
     # Si no se proporciona una IP, buscar un nodo en la red
     if len(sys.argv) == 1:
         print("Buscando nodos en la red...")
@@ -671,6 +824,15 @@ if __name__ == "__main__":
         print(f"Dirección IP del servidor: {target_ip}")
         # Iniciar el cliente con la IP dada
         Client(None, target_ip=target_ip)
+=======
+    server_ip = find_active_server("10.0.11.1", "10.0.11.20", 8003)
+    #server_ip = find_active_server("10.0.1.1", "10.0.1.20", 8003)
+    if server_ip:
+        print(f"🎯 Servidor disponible en: {server_ip}")
+        Client(context, None, target_ip=server_ip,target_port=8003)
+    else:
+        print("⚠️ Ningún servidor está disponible en el rango.")
+>>>>>>> Stashed changes:src/Client/client.py
 
 
 
